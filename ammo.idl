@@ -118,6 +118,7 @@ btDefaultMotionState implements btMotionState;
 // Collision
 
 interface btCollisionObject {
+  void btCollisionObject();
   void setAnisotropicFriction([Const, Ref] btVector3 anisotropicFriction, long frictionMode);
   btCollisionShape getCollisionShape();
   void setContactProcessingThreshold(float contactProcessingThreshold);
@@ -262,6 +263,7 @@ interface ClosestConvexResultCallback {
 ClosestConvexResultCallback implements ConvexResultCallback;
 
 interface btCollisionShape {
+  void getAabb([Const, Ref] btTransform t,[Ref] btVector3 aabbMin, [Ref] btVector3 aabbMax);
   void setLocalScaling([Const, Ref] btVector3 scaling);
   [Const, Ref] btVector3 getLocalScaling();
   void calculateLocalInertia(float mass, [Ref] btVector3 inertia);
@@ -430,6 +432,7 @@ interface btIndexedMeshArray {
 interface btTriangleMesh {
   void btTriangleMesh(optional boolean use32bitIndices, optional boolean use4componentVertices);
   void addTriangle([Const, Ref] btVector3 vertex0, [Const, Ref] btVector3 vertex1, [Const, Ref] btVector3 vertex2, optional boolean removeDuplicateVertices);
+  void addTriangleIndices(long index1, long index2, long index3 );
   long findOrAddVertex([Const, Ref] btVector3 vertex, boolean removeDuplicateVertices);
   void addIndex(long index);
  [Ref] btIndexedMeshArray getIndexedMeshArray();
@@ -467,6 +470,16 @@ interface btBvhTriangleMeshShape {
   void btBvhTriangleMeshShape(btStridingMeshInterface meshInterface, boolean useQuantizedAabbCompression, optional boolean buildBvh);
 };
 btBvhTriangleMeshShape implements btTriangleMeshShape;
+
+interface btGImpactShapeInterface {
+  void updateBound();
+};
+btGImpactShapeInterface implements btConcaveShape;
+
+interface btGImpactMeshShape {
+  void btGImpactMeshShape(btStridingMeshInterface meshInterface);
+};
+btGImpactMeshShape implements btGImpactShapeInterface;
 
 interface btHeightfieldTerrainShape {
     void btHeightfieldTerrainShape(long heightStickWidth, long heightStickLength, VoidPtr heightfieldData, float heightScale, float minHeight, float maxHeight, long upAxis, PHY_ScalarType hdt, boolean flipQuadEdges);
@@ -699,6 +712,18 @@ btFixedConstraint implements btTypedConstraint;
 interface btConstraintSolver {
 };
 
+interface btCollisionAlgorithm {
+};
+
+interface btActivatingCollisionAlgorithm {
+};
+btActivatingCollisionAlgorithm implements btCollisionAlgorithm;
+
+interface btGImpactCollisionAlgorithm {
+  static void registerAlgorithm(btCollisionDispatcher dispatcher);
+};
+btGImpactCollisionAlgorithm implements btActivatingCollisionAlgorithm;
+
 interface btDispatcherInfo {
   attribute float m_timeStep;
   attribute long m_stepCount;
@@ -714,7 +739,9 @@ interface btDispatcherInfo {
 };
 
 interface btCollisionWorld {
+  void btCollisionWorld(btDispatcher dispatcher, btBroadphaseInterface pairCache, btCollisionConfiguration collisionConfiguration);
   btDispatcher getDispatcher();
+  void performDiscreteCollisionDetection();
   void rayTest([Const, Ref] btVector3 rayFromWorld, [Const, Ref] btVector3 rayToWorld, [Ref] RayResultCallback resultCallback);
   btOverlappingPairCache getPairCache();
   [Ref] btDispatcherInfo getDispatchInfo();
